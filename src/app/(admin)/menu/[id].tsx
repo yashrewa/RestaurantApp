@@ -1,6 +1,6 @@
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native'
-import React, { useState } from 'react'
-import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router'
+import { View, Text, Image, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
+import { useState } from 'react'
+import { Link, Stack, useLocalSearchParams, usePathname, useRouter } from 'expo-router'
 import products from '@/assets/data/products';
 import Button from '@/src/components/Button';
 import { useCart } from '@/src/providers/CartProvider';
@@ -8,15 +8,23 @@ import { types } from '@babel/core';
 import { MealSize } from '@/src/types';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/src/constants/Colors';
+import { useProduct } from '@/src/api/products';
+import { fallbackImage } from '@/src/constants/fallbackImage';
 
 
 const sizes: MealSize[] = ['Quarter', 'Half', 'Full']
 const productDetailPage = () => {
+  const { id }: { id: string } = useLocalSearchParams()
   const [selectedSize, setSelectedSize] = useState<MealSize>('Half')
 
+
+  const { data: product, error, isLoading } = useProduct(parseFloat(id))
+
+
+
+
+
   const router = useRouter();
-  const { id }: { id: string } = useLocalSearchParams();
-  const product = products.find(p => p.id === parseInt(id));
 
 
   const { addItem } = useCart()
@@ -31,6 +39,15 @@ const productDetailPage = () => {
     }
 
   }
+
+  if (isLoading) return <ActivityIndicator size={'large'} />
+
+  if (error) return (
+    <View style={{ flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+      <FontAwesome name='ban' style={{ fontSize: 80, color: 'gray' }} />
+      <Text style={{ textAlign: 'center', fontSize: 28, color: 'gray' }}>Failed to get the data please try after sometimes</Text>
+    </View>
+  )
 
   if (!product) {
     return (
@@ -64,10 +81,10 @@ const productDetailPage = () => {
       />
 
       <Stack.Screen options={{ title: product?.name }} />
-      <Image source={{ uri: product.image }} style={styles.image} />
+      <Image source={{ uri: product.image || fallbackImage }} style={styles.image} />
 
-      <Text style={styles.title}>${product.name}</Text>
-      <Text style={styles.price}>${product.price}</Text>
+      <Text style={styles.title}>{product.name}</Text>
+      <Text style={styles.price}>₹{product.price}</Text>
       {/* <Button
         text='Add To Cart'
         onPress={handleAddToCart}

@@ -1,9 +1,11 @@
 import Button from '@/src/components/Button'
 import Colors from '@/src/constants/Colors'
-import { useState } from 'react'
-import { View, Text, StyleSheet, TextInput, Image, Alert } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, TextInput, Image, Alert, ActivityIndicator } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { Stack, useLocalSearchParams } from 'expo-router'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
+import { useDeleteProduct, useInsertProduct, useProduct, useUpdateProduct } from '@/src/api/products'
+import { fallbackImage } from '@/src/constants/fallbackImage'
 
 
 const CreateProductScreen = () => {
@@ -11,14 +13,29 @@ const CreateProductScreen = () => {
     const [price, setPrice] = useState<string>('')
     const [errors, setErrors] = useState<string>('')
     const [image, setImage] = useState<string | null>(null);
+    const { mutateAsync: insertProduct } = useInsertProduct()
+    const { mutateAsync: updateProduct } = useUpdateProduct()
+    const { mutateAsync: deleteProduct, isPending } = useDeleteProduct()
+    const router = useRouter();
 
-    const { id } = useLocalSearchParams()
-    const isUpdating = !!id;
+    const { id }: { id: string } = useLocalSearchParams() || false
+    const isUpdatingFuckedUpWay = !!id;
+    const { data: updatingProduct, error, isLoading } = useProduct(parseFloat(id))
+
+    useEffect(() => {
+        console.log(updatingProduct)
+        setName(updatingProduct.name)
+        setPrice(updatingProduct.price.toString())
+        setImage(updatingProduct.image)
+    }, [updatingProduct])
+
+
 
     const resetField = () => {
         setName('')
         setPrice('')
     }
+
     const validateinput = () => {
         if (!name) {
             setErrors('name is required')
@@ -37,7 +54,7 @@ const CreateProductScreen = () => {
     }
 
     const onsubmit = () => {
-        if (isUpdating) {
+        if (isUpdatingFuckedUpWay) {
             onUpdate()
         } else {
             onCreate()
@@ -48,7 +65,15 @@ const CreateProductScreen = () => {
             return;
         }
 
-
+        updateProduct({
+            name, price: parseFloat(price), image, id: parseInt(id)
+        }, {
+            onSuccess: () => {
+                Alert.alert('Product Created Successfully')
+                resetField();
+                router.back()
+            }
+        })
         console.log('Product Updated')
         // Update the information in Supabase
 
@@ -59,16 +84,24 @@ const CreateProductScreen = () => {
         if (!validateinput()) {
             return;
         }
-
+        insertProduct({ name, price: parseFloat(price), image }, {
+            onSuccess: () => {
+                Alert.alert('Product Created Successfully')
+                resetField();
+                router.back()
+            }
+        })
 
         console.log('Product Created')
         // Save the information in Supabase
-
-        resetField();
     }
 
     const onDelete = () => {
-        console.warn('Delete hogaya bhai')
+        deleteProduct(parseInt(id), {
+            onSuccess: () => {
+                router.push('/(admin)/menu')
+            }
+        })
     }
 
     const confirmDelete = () => {
@@ -80,6 +113,7 @@ const CreateProductScreen = () => {
             onPress: onDelete
         }])
     }
+
 
     const pickImage = async () => {
         // No permissions request is necessary for launching the image library
@@ -100,16 +134,17 @@ const CreateProductScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{ title: isUpdating ? 'Update This' : 'Add New Dish' }} />
-            <Image source={{ uri: image || 'https://cdn-icons-png.flaticon.com/512/135/135161.png' }} style={styles.image} />
+            <Stack.Screen options={{ title: isUpdatingFuckedUpWay ? 'Update This' : 'Add New Dish' }} />
+            <Image source={{ uri: image || fallbackImage }} style={styles.image} />
             <Text onPress={pickImage} style={styles.textButton}>Select Image</Text>
             <Text style={styles.label}>Name</Text>
-            <TextInput value={name} onChangeText={setName} placeholder='name' style={styles.input} />
+            <TextInput value={name} onChangeText={(e) => setName(e)} placeholder='name' style={styles.input} />
             <Text style={styles.label} >Price</Text>
-            <TextInput value={price} onChangeText={setPrice} placeholder='(Rs.) 80' keyboardType='numeric' style={styles.input} />
+            <TextInput value={price} onChangeText={(e) => setPrice(e)} placeholder='₹ 80' keyboardType='numeric' style={styles.input} />
             <Text style={{ color: 'red' }}>{errors}</Text>
-            <Button onPress={onsubmit} text={isUpdating ? 'Update' : 'Create'} />
-            {isUpdating && <Text onPress={confirmDelete} style={styles.textButton}>Delete</Text>}
+            <Button onPress={onsubmit} text={isUpdatingFuckedUpWay ? 'Update' : 'Create'} />
+            {isUpdatingFuckedUpWay && <Text onPress={() => confirmDelete()} style={styles.textButton}>{isPending ? <ActivityIndicator /> : 'Delete'}</Text>}
+            
         </View>
     )
 }

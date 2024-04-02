@@ -1,0 +1,1 @@
+export const fallbackImage:string = 'https://img.freepik.com/free-photo/top-view-banquet-with-lots-food_52683-101175.jpg?size=626&ext=jpg&ga=GA1.1.2113030492.1711929600&semt=ais'

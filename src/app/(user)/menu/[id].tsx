@@ -1,34 +1,49 @@
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native'
+import { View, Text, Image, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
-import products from '@/assets/data/products';
 import Button from '@/src/components/Button';
 import { useCart } from '@/src/providers/CartProvider';
-import { types } from '@babel/core';
 import { MealSize } from '@/src/types';
+import { useProduct } from '@/src/api/products';
+import { fallbackImage } from '@/src/constants/fallbackImage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome } from '@expo/vector-icons';
 
 
-const sizes:MealSize[] = ['Quarter', 'Half', 'Full']
+const sizes: MealSize[] = ['Quarter', 'Half', 'Full']
 const productDetailPage = () => {
   const [selectedSize, setSelectedSize] = useState<MealSize>('Half')
-
   const router = useRouter();
   const { id }: { id: string } = useLocalSearchParams();
-  const product = products.find(p => p.id === parseInt(id));
-  
-  
+  // const product = products.find(p => p.id === parseInt(id));'
+  const { data: product, error, isLoading } = useProduct(parseFloat(id))
+
+
+
+
   const { addItem } = useCart()
 
 
-
   const handleAddToCart = () => {
-    if(product && addItem){
+    if (product && addItem) {
       addItem(product, selectedSize)
       console.warn('Added to Cart')
       router.push('/cart')
     }
 
   }
+
+
+  if (isLoading) return <ActivityIndicator size={'large'} />
+
+  if (error) return (
+    <SafeAreaView>
+      <View style={{ flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <FontAwesome name='ban' style={{ fontSize: 80, color: 'gray' }} />
+        <Text style={{ textAlign: 'center', fontSize: 28, color: 'gray' }}>Failed to get the data please try after sometimes</Text>
+      </View>
+    </SafeAreaView>
+  )
 
   if (!product) {
     return (
@@ -41,7 +56,7 @@ const productDetailPage = () => {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: product?.name }} />
-      <Image source={{ uri: product.image }} style={styles.image} />
+      <Image source={{ uri: product.image || fallbackImage }} style={styles.image} />
       <Text>Select Size</Text>
 
       {/* Take size ka description from the owner */}
@@ -52,7 +67,7 @@ const productDetailPage = () => {
           </Pressable>
         ))}
       </View>
-      <Text style={styles.price}>${product.price}</Text>
+      <Text style={styles.price}>₹{product.price}</Text>
       <Button
         text='Add To Cart'
         onPress={handleAddToCart}

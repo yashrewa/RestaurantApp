@@ -2,8 +2,9 @@ import { Image, StyleSheet, Text, View, Pressable } from "react-native"
 import { Product } from '@/src/types';
 import Colors from "../constants/Colors";
 import { Link, useSegments } from "expo-router";
+import { fallbackImage } from "../constants/fallbackImage";
 
-export const defaultPizzaImage = 'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/food./default.png';
+
 
 type ProductListItemProps = {
     product: Product;
@@ -20,12 +21,12 @@ const ProductListItem = ({ product }: ProductListItemProps) => {
         {segments[0] && <Link href={`/${segments[0]}/menu/${product.id}` as `${string}:${string}`} asChild>
             <Pressable style={styles.container}>
                 <Image
-                    source={{ uri: product.image || defaultPizzaImage }}
+                    source={{ uri: product.image || fallbackImage }}
                     style={styles.image}
                     resizeMode="contain"
                 />
                 <Text style={styles.title}>{product.name}</Text>
-                <Text style={styles.price}> ${product.price} </Text>
+                <Text style={styles.price}> ₹{product.price} </Text>
             </Pressable>
         </Link >
         }
