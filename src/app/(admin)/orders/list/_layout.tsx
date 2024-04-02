@@ -8,7 +8,7 @@ const TopTabs = withLayoutContext(createMaterialTopTabNavigator().Navigator)
 export default function OrderListNavigator() {
     return (<>
         <TopTabs>
-            <TopTabs.Screen name="index" options={{title:'active'}}/>
+            <TopTabs.Screen name="index" options={{ title: 'active' }} />
         </TopTabs>
     </>
     )

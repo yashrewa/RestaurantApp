@@ -1,30 +1,48 @@
-import { View, Text, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import React, { useState } from 'react';
-import Button from '../components/Button';
-import { Link, useRouter } from 'expo-router';
-import Colors from '../constants/Colors';
+import Button from '@/src/components/Button';
+import { Link, Redirect, useNavigation, useRouter } from 'expo-router';
+import Colors from '../../constants/Colors';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../providers/AuthProvider';
 
-const signUp = () => {
+
+
+const signIn = () => {
+
     const [email, setEmail] = useState<string>('')
     const [password, setpassword] = useState<string>('')
+
+    const {session} = useAuth()
+
+
     const router = useRouter()
-    const handleSignUp = () => {
-        // Logic to add the user to the database for the first time and redirect back to the login page
-        console.log(email, password)
-        router.push('/(admin)/')
+    const handleSignIn = async () => {
+
+        // perform the authentication using the above state of email and password
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email, password
+        })
+        if(error) Alert.alert(error.message)
+       
+        // here route will deped on the type of user trying to login as the userType will be provider by the database login request
     }
 
+    // if(session) return <Redirect href={'/'}/>
     return (
         <View style={styles.container}>
             <Text style={styles.label}>Email</Text>
             <TextInput value={email} onChangeText={setEmail} style={styles.input} placeholder='Example@mail.com' />
             <Text style={styles.label}>Password</Text>
             <TextInput value={password} onChangeText={setpassword} style={styles.input} secureTextEntry={true} keyboardType='visible-password' />
-            <Button text='Sign in' onPress={handleSignUp} />
+
+            <Button onPress={handleSignIn} text='Sign In' />
             <Text style={styles.textButton}><Link href={'/signUp'}>Create an account</Link></Text>
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -50,7 +68,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'white',
-        borderBlockColor: 'gray',
+        // borderBlockColor: 'gray',
         borderWidth: 1,
         padding: 10,
         borderRadius: 5,
@@ -59,4 +77,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default signUp;
+export default signIn;
