@@ -3,11 +3,12 @@ import { Product } from '@/src/types';
 import Colors from "../constants/Colors";
 import { Link, useSegments } from "expo-router";
 import { fallbackImage } from "../constants/fallbackImage";
+import { Tables } from "../database.types";
 
 
 
 type ProductListItemProps = {
-    product: Product;
+    product: Tables<'products'>;
 }
 
 

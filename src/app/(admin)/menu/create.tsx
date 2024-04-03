@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, TextInput, Image, Alert, ActivityIndicator } fr
 import * as ImagePicker from 'expo-image-picker'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { useDeleteProduct, useInsertProduct, useProduct, useUpdateProduct } from '@/src/api/products'
-import { fallbackImage } from '@/src/constants/fallbackImage'
+import { fallbackImage, imagePlaceholder } from '@/src/constants/fallbackImage'
 
 
 const CreateProductScreen = () => {
@@ -20,14 +20,18 @@ const CreateProductScreen = () => {
 
     const { id }: { id: string } = useLocalSearchParams() || false
     const isUpdatingFuckedUpWay = !!id;
-    const { data: updatingProduct, error, isLoading } = useProduct(parseFloat(id))
 
-    useEffect(() => {
-        console.log(updatingProduct)
-        setName(updatingProduct.name)
-        setPrice(updatingProduct.price.toString())
-        setImage(updatingProduct.image)
-    }, [updatingProduct])
+    if (id) {
+        const { data: updatingProduct, error, isLoading } = useProduct(parseFloat(id))
+        useEffect(() => {
+            console.log(updatingProduct)
+            if (updatingProduct) {
+                setName(updatingProduct.name)
+                setPrice(updatingProduct.price.toString())
+                setImage(updatingProduct.image)
+            }
+        }, [updatingProduct])
+    }
 
 
 
@@ -132,10 +136,12 @@ const CreateProductScreen = () => {
     };
 
 
+
+
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ title: isUpdatingFuckedUpWay ? 'Update This' : 'Add New Dish' }} />
-            <Image source={{ uri: image || fallbackImage }} style={styles.image} />
+            <Image source={{ uri: image || imagePlaceholder }} style={styles.image} />
             <Text onPress={pickImage} style={styles.textButton}>Select Image</Text>
             <Text style={styles.label}>Name</Text>
             <TextInput value={name} onChangeText={(e) => setName(e)} placeholder='name' style={styles.input} />
@@ -144,7 +150,7 @@ const CreateProductScreen = () => {
             <Text style={{ color: 'red' }}>{errors}</Text>
             <Button onPress={onsubmit} text={isUpdatingFuckedUpWay ? 'Update' : 'Create'} />
             {isUpdatingFuckedUpWay && <Text onPress={() => confirmDelete()} style={styles.textButton}>{isPending ? <ActivityIndicator /> : 'Delete'}</Text>}
-            
+
         </View>
     )
 }
