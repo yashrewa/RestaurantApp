@@ -1,11 +1,15 @@
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 
-import orders from '@/assets/data/orders';
+// import orders from '@/assets/data/orders';
 import OrderListItem from '@/src/components/orderListItem';
+import { useAdminOrderList } from '@/src/api/orders';
 
 
 
 export default function OrderScreen() {
+
+    const { data: orders } = useAdminOrderList({ archived: true })
+
     return (
         <FlatList
             data={orders}

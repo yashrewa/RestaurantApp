@@ -1,7 +1,9 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react";
-import { CartItem } from "../types";
+import { CartItem, InsertTables } from "../types";
 import { randomUUID } from "expo-crypto";
 import { Tables } from "../database.types";
+import { useInsertOrder } from "../api/orders";
+import { useRouter } from "expo-router";
 
 type Product = Tables<'products'>
 
@@ -11,16 +13,21 @@ type CartType = {
     addItem?: (product: Product, size: CartItem['size']) => void;
     updateQuantity?: (itemId: string, newQuantity: number, size: string) => void;
     total: number;
+    checkOut: () => void;
 }
 const CartContext = createContext<CartType>({
     items: [],
     addItem: () => { },
     updateQuantity: () => { },
-    total: 0
+    total: 0,
+    checkOut: () => { }
 })
 
 const CartProvider = ({ children }: PropsWithChildren) => {
     const [items, setItems] = useState<CartItem[]>([])
+    const { mutateAsync } = useInsertOrder()
+
+    const router = useRouter()
 
     const addItem = (product: Product, size: CartItem['size']) => {
         const newCartItem: CartItem = {
@@ -67,10 +74,29 @@ const CartProvider = ({ children }: PropsWithChildren) => {
         }
     }
 
+    const ClearCart = () => {
+        setItems([])
+    }
+
+    const checkOut = () => {
+
+        mutateAsync({ total }, {
+            onSuccess: (data) => {
+                ClearCart()
+                console.log('DATA AFTEER CLICKING ON CHECKOUT',data)
+                router.push(`/(user)/orders/${data?.id}`)
+                
+            }
+        })
+
+        console.warn('Checking out')
+    }
+
+
     const total = parseInt((items.reduce((sum, item) => (sum += item.product.price * item.quantity), 0)).toFixed(2))
     return (
         <>
-            <CartContext.Provider value={{ items, addItem, updateQuantity, total }}>{children}</CartContext.Provider>
+            <CartContext.Provider value={{ items, addItem, updateQuantity, total, checkOut }}>{children}</CartContext.Provider>
         </>
     )
 }

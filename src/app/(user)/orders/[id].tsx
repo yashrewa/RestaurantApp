@@ -1,15 +1,23 @@
 import orders from "@/assets/data/orders";
+import { useOrderDetails } from "@/src/api/orders";
 import OrderItemListItem from "@/src/components/OrderItemListItem";
 import OrderListItem from "@/src/components/orderListItem";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function OrderDetailScreen() {
 
-    const { id } = useLocalSearchParams()
-    const order = orders?.find(x => x?.id.toString() == id);
+    const { id }: { id: string } = useLocalSearchParams()
+    // const order = orders?.find(x => x?.id.toString() == id);
 
-    if (!order) {
+    const { data: order, error, isLoading } = useOrderDetails(parseInt(id))
+
+
+
+    if (isLoading) {
+        return <ActivityIndicator />
+    }
+    if (error) {
         return <Text> Not found </Text>
     }
     return (
@@ -19,11 +27,11 @@ export default function OrderDetailScreen() {
                 <OrderListItem order={order} />
             </View>
             <FlatList
-                data={order.order_items}
+                data={order?.order_items}
                 renderItem={({ item }) => <OrderItemListItem item={item} />}
                 contentContainerStyle={{ gap: 10, padding: 10 }}
             />
-            
+
         </>
     )
 }
@@ -39,5 +47,5 @@ const styles = StyleSheet.create({
         gap: 20,
         borderRadius: 20,
     },
-    
+
 })

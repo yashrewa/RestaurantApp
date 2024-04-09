@@ -1,17 +1,21 @@
 import orders from "@/assets/data/orders";
+import { useOrderDetails } from "@/src/api/orders";
 import OrderItemListItem from "@/src/components/OrderItemListItem";
 import OrderListItem from "@/src/components/orderListItem";
 import Colors from "@/src/constants/Colors";
 import { OrderStatusList } from "@/src/types";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function OrderDetailScreen() {
 
     const { id } = useLocalSearchParams()
-    const order = orders?.find(x => x?.id.toString() == id);
+    const { data: order, error, isLoading } = useOrderDetails(parseInt(id))
 
-    if (!order) {
+    if (isLoading) {
+        return <ActivityIndicator />
+    }
+    if (error) {
         return <Text> Not found </Text>
     }
     return (

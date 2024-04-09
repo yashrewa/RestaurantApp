@@ -5,6 +5,7 @@ import orders from "@/assets/data/orders";
 import { Link, Stack, useSegments } from "expo-router";
 import relativeTime from 'dayjs/plugin/relativeTime'
 import dayjs from "dayjs";
+import { Tables } from "../database.types";
 
 dayjs.extend(relativeTime)
 export const defaultPizzaImage = 'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/food./default.png';
@@ -14,7 +15,7 @@ type ProductListItemProps = {
 }
 
 type OrderListItemProps = {
-    order: Order;
+    order: Tables<'orders'>;
 }
 function OrderListItem({ order }: OrderListItemProps) {
     // const { item } = item;
